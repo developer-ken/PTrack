@@ -58,11 +58,11 @@ namespace PTrack
 
         static void MoveToTargetPoint(Point p)
         {
-            const double Kp = 0.05, Ki = 0.001, Kd = 0; // PID constants
+            const double Kp = 0.08, Ki = 0.0005, Kd = 0; // PID constants
             double integral = 0, error_prev = 0;
             const int interval = 500; // MoveCommand interval
-            var spot = ShotForGreenSpot();
-            while (Math.Abs(spot.X - p.X) > 8 || Math.Abs(spot.Y - p.Y) > 8) // threshold for error
+            var spot = ShotForRedSpot();
+            while (Math.Abs(spot.X - p.X) > 4 || Math.Abs(spot.Y - p.Y) > 4) // threshold for error
             {
                 double error = Math.Sqrt(Math.Pow(p.X - spot.X, 2) + Math.Pow(p.Y - spot.Y, 2));
                 integral += error;
@@ -72,7 +72,7 @@ namespace PTrack
                 int y_move = (int)Math.Round(output * Math.Sin(Math.Atan2(p.Y - spot.Y, p.X - spot.X)));
                 MoveCommand(x_move, y_move, interval);
                 error_prev = error;
-                spot = ShotForGreenSpot();
+                spot = ShotForRedSpot();
             }
         }
 
@@ -86,6 +86,37 @@ namespace PTrack
                 int threshold = (int)((maxval + minval) / 2);
                 Cv2.Threshold(g, g, threshold, 255, ThresholdTypes.Binary);
                 Cv2.FindContours(g, out Point[][] c, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
+                if (c.Length == 0) throw new Exception("No green spot found");
+                Point target = new Point();
+                double score = double.MinValue;
+                foreach (var cc in c)
+                {
+                    var rect = Cv2.BoundingRect(cc);
+                    Mat roi = f.SubMat(rect);
+                    Scalar avg = Cv2.Mean(roi);
+                    var brightness = (avg.Val0 + avg.Val1 + avg.Val2 + avg.Val3) / 4;
+                    if (brightness > score)
+                    {
+                        score = brightness;
+                        target = new Point((rect.Left + rect.Right) / 2, (rect.Bottom + rect.Top) / 2);
+                    }
+                }
+                f.DrawMarker(target, Scalar.Red);
+                Cv2.ImShow("spot", f);
+                Cv2.WaitKey(1);
+                return target;
+            }
+        }
+        static Point ShotForRedSpot()
+        {
+            using (var f = cam.GetFrame(-5))
+            using (var r = CVUtil.RedMinusBG(f))
+            using (Mat point = new Mat())
+            {
+                Cv2.MinMaxLoc(r, out double minval, out double maxval, out _, out Point maxp);
+                int threshold = (int)((maxval + minval) / 2);
+                Cv2.Threshold(r, r, threshold, 255, ThresholdTypes.Binary);
+                Cv2.FindContours(r, out Point[][] c, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
                 if (c.Length == 0) throw new Exception("No green spot found");
                 Point target = new Point();
                 double score = double.MinValue;
@@ -123,9 +154,9 @@ namespace PTrack
             }
             while (true)
             {
+            Refind:
                 using (var f = cam.GetFrame(-5))
                 {
-                Refind:
                     try
                     {
                         var rectp = RectTrack.DetectSkewRect(f);

@@ -21,6 +21,7 @@ namespace PTrack
                 Cv2.Erode(imgbin, imgbin, new Mat());
                 Cv2.Erode(imgbin, imgbin, new Mat());
                 Cv2.ImShow("bin", imgbin);
+                Cv2.ImShow("ctd_img", image);
                 Cv2.WaitKey(1);
                 Cv2.FindContours(imgbin, out Point[][] contours, out HierarchyIndex[] hierarchy, RetrievalModes.Tree, ContourApproximationModes.ApproxSimple);
                 Cv2.DrawContours(image, contours, -1, Scalar.Yellow, 1);
@@ -36,11 +37,11 @@ namespace PTrack
                     double area = Cv2.ContourArea(contour); // 面积
                     RotatedRect rect = Cv2.MinAreaRect(contour); // 最小外接矩形
                     double dist = Distance((Point)rect.Center - new Point(image.Width / 2, image.Height / 2));
-                    double score = area + dist * 5;
+                    double score = area + dist * 3;
 
                     if (hierarchy[ijj].Child < 0) continue; //没有内框
-                    if (hierarchy[hierarchy[ijj].Child].Next > 0) continue; //太多内框
-                    if (hierarchy[hierarchy[ijj].Child].Previous > 0) continue; //太少内框
+                    //if (hierarchy[hierarchy[ijj].Child].Next > 0) continue; //太多内框
+                    //if (hierarchy[hierarchy[ijj].Child].Previous > 0) continue; //太多内框
 
                     var bbx = Cv2.BoxPoints(rect);
                     if (score > maxScore)
@@ -58,7 +59,22 @@ namespace PTrack
                 if (t)
                 {
                     Cv2.DrawContours(image, new Point[][] { bx.ContourCW }, -1, Scalar.Green, 1);
-                    var child = contours[hierarchy[maxbxid].Child];
+                    var outer = contours[maxbxid];
+                    Point[] child;// = contours[hierarchy[maxbxid].Child];
+                    int childid = hierarchy[maxbxid].Child;
+                    int maxcid = -1;
+                    double maxsize = 0;
+                    do
+                    {
+                        var area = Cv2.ContourArea(contours[childid]);
+                        if (maxsize < area)
+                        {
+                            maxcid = childid;
+                            maxsize = area;
+                        }
+                        childid = hierarchy[childid].Next;
+                    } while (childid >= 0);
+                    child = contours[maxcid];
                     RotatedRect rect = Cv2.MinAreaRect(child); // 最小外接矩形
                     var bbx = Cv2.BoxPoints(rect);
                     Rect4P aa = new Rect4P();
@@ -66,7 +82,10 @@ namespace PTrack
                     aa.LeftDown = (Point)bbx[2];
                     aa.RightDown = (Point)bbx[1];
                     aa.RightUp = (Point)bbx[0];
-                    PointEnhance(aa, child);
+
+                    aa = PointEnhance(aa, child);
+                    bx = PointEnhance(bx, outer);
+
                     Cv2.DrawContours(image, new Point[][] { aa.ContourCW }, -1, Scalar.Red, 1);
 
                     bx.LeftUp = Devide((bx.LeftUp + aa.LeftUp), 2);
@@ -105,11 +124,11 @@ namespace PTrack
         public static Rect4P PointEnhance(Rect4P input, Point[] contour)
         {
             Rect4P result = new Rect4P();
-            Cv2.ApproxPolyDP(contour, Distance(input.LeftUp - input.RightDown) / 50f, false);
-            result.LeftDown = ClosestTo(input.LeftDown, contour);
-            result.LeftUp = ClosestTo(input.LeftUp, contour);
-            result.RightUp = ClosestTo(input.RightUp, contour);
-            result.RightDown = ClosestTo(input.RightDown, contour);
+            var app = Cv2.ApproxPolyDP(contour, Distance(input.LeftUp - input.RightDown) / 50f, false);
+            result.LeftDown = ClosestTo(input.LeftDown, app);
+            result.LeftUp = ClosestTo(input.LeftUp, app);
+            result.RightUp = ClosestTo(input.RightUp, app);
+            result.RightDown = ClosestTo(input.RightDown, app);
             return result;
         }
 
@@ -117,10 +136,10 @@ namespace PTrack
         {
             double mindist = double.MaxValue;
             Point result = points[0];
-            foreach(Point p in points)
+            foreach (Point p in points)
             {
                 var dist = Distance(ref_ - p);
-                if(mindist > dist)
+                if (mindist > dist)
                 {
                     mindist = dist;
                     result = p;
