@@ -89,6 +89,12 @@ namespace PTrack
                 MoveCommand(x_move, y_move, interval);
                 error_prev = error;
                 spot = ShotForRedSpot();
+                if (IsBtnPressed)
+                {
+                    Thread.Sleep(1000);
+                    IsBtnPressed = false;
+                    while (!IsBtnPressed) Thread.Sleep(1);
+                }
             }
         }
 
