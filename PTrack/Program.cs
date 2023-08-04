@@ -91,9 +91,11 @@ namespace PTrack
                 spot = ShotForRedSpot();
                 if (IsBtnPressed)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                     IsBtnPressed = false;
                     while (!IsBtnPressed) Thread.Sleep(1);
+                    Thread.Sleep(500);
+                    IsBtnPressed = false;
                 }
             }
         }
@@ -322,6 +324,8 @@ namespace PTrack
             GC.Collect();
 
             MoveToTargetPoint(center);
+
+            Thread.Sleep(500);
 
             IsBtnPressed = false;
             while (!IsBtnPressed)
