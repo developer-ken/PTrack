@@ -131,6 +131,7 @@ namespace PTrack
                 }
                 if(IsBtnPressed)
                 {
+                    Thread.Sleep(1000);
                     IsBtnPressed = false;
                     while(!IsBtnPressed) Thread.Sleep(1);
                 }
