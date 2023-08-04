@@ -1,0 +1,3 @@
+[submodule "DFBSharp"]
+	path = DFBSharp
+	url = https://github.com/developer-ken/DFBSharp.git
