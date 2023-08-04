@@ -170,13 +170,26 @@ namespace PTrack
                 Console.WriteLine("检测到Linux，使用/dev/videoUSBx和/dev/ttyUSB0");
                 cam = new FreeRollingCamera("/dev/videoUSB0");
                 com = new SerialPort("/dev/ttyUSBSTM32", 115200);
-                com.DataReceived += Com_DataReceived;
                 //commotor = new SerialPort("/dev/ttyUSBSTEPPER", 9600);
             }
             cam.BeginRoll();
             com.RtsEnable = false;
             com.DtrEnable = false;
             com.Open();
+            //com.DataReceived += Com_DataReceived;
+            Thread th = new Thread(new ThreadStart(() =>
+            {
+                while (true)
+                {
+                    var b = com.ReadByte();
+                    if (b == 0xfa)
+                    {
+                        Console.WriteLine("pressed");
+                        IsBtnPressed = true;
+                    }
+                }
+            }));
+            th.Start();
             //commotor.Open();
             if (OperatingSystem.IsWindows())
             {
