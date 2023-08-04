@@ -6,6 +6,7 @@ using static System.Net.Mime.MediaTypeNames;
 using Point = OpenCvSharp.Point;
 using Size = OpenCvSharp.Size;
 using System.Device.Gpio;
+using System;
 
 namespace PTrack
 {
@@ -133,6 +134,7 @@ namespace PTrack
                 }
                 if (IsBtnPressed)
                 {
+                    BeepStop();
                     Thread.Sleep(1000);
                     IsBtnPressed = false;
                     while (!IsBtnPressed) Thread.Sleep(1);
@@ -205,8 +207,7 @@ namespace PTrack
                 }
                 Cv2.DrawMarker(f, p1, Scalar.Green);
                 Cv2.DrawMarker(f, p2, Scalar.Red);
-                Cv2.ImShow("display", f);
-                Cv2.WaitKey(1);
+                Visualize(f);
             }
             return (p1, p2);
         }
@@ -268,6 +269,26 @@ namespace PTrack
                 }
                 return target;
             }
+        }
+
+        static void BeepStart()
+        {
+            byte[] buffer = new byte[12];
+            Buffer.BlockCopy(BitConverter.GetBytes(200000), 0, buffer, 0, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(200000), 0, buffer, 4, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(200000), 0, buffer, 8, 4);
+            com.Write(buffer, 0, 12);
+            Thread.Sleep(10);
+        }
+
+        static void BeepStop()
+        {
+            byte[] buffer = new byte[12];
+            Buffer.BlockCopy(BitConverter.GetBytes(300000), 0, buffer, 0, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(300000), 0, buffer, 4, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(300000), 0, buffer, 8, 4);
+            com.Write(buffer, 0, 12);
+            Thread.Sleep(10);
         }
 
         static void Main(string[] args)
@@ -333,15 +354,19 @@ namespace PTrack
                 try
                 {
                     GreenGoesToRed();
+                    byte[] buffer = new byte[12];
+                    BeepStart();
                     if (IsBtnPressed)
                     {
+                        BeepStop();
                         Thread.Sleep(1000);
                         IsBtnPressed = false;
                         while (!IsBtnPressed) Thread.Sleep(1);
                         Thread.Sleep(1000);
                         IsBtnPressed = false;
                     }
-                }catch(Exception err)
+                }
+                catch (Exception err)
                 {
                     Console.WriteLine(err.Message);
                 }
