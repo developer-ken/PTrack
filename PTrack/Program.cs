@@ -92,6 +92,110 @@ namespace PTrack
             }
         }
 
+        static void GreenGoesToRed()
+        {
+            const double Kp = 0.5, Ki = 0, Kd = 0; // PID constants
+            double integral = 0, error_prev = 0;
+            const int interval = 500; // MoveCommand interval
+            var p2pp = Shot4DuoColorPoints();
+            var spot = p2pp.Item1;
+            var p = p2pp.Item2;
+            while (Math.Abs(spot.X - p.X) > 25 || Math.Abs(spot.Y - p.Y) > 25) // threshold for error
+            {
+                try
+                {
+                    double error = Math.Sqrt(Math.Pow(p.X - spot.X, 2) + Math.Pow(p.Y - spot.Y, 2));
+                    integral += error;
+                    if (integral * Ki > 100)
+                    {
+                        integral = 100 / Ki;
+        }
+                    double derivative = error - error_prev;
+                    double output = Kp * error + Ki * integral + Kd * derivative;
+                    int x_move = (int)Math.Round(output * Math.Cos(Math.Atan2(p.Y - spot.Y, p.X - spot.X)));
+                    int y_move = (int)Math.Round(output * Math.Sin(Math.Atan2(p.Y - spot.Y, p.X - spot.X)));
+                    MoveCommand(x_move, y_move, interval);
+                    error_prev = error;
+                    p2pp = Shot4DuoColorPoints();
+                    spot = p2pp.Item1;
+                    p = p2pp.Item2;
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine(err.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Track both green and red spot
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        static (Point, Point) Shot4DuoColorPoints()
+        {
+            Point p1 = new Point(), p2 = new Point();
+            using (var f = cam.GetFrame(-5))
+            using (var g = CVUtil.GreenMinusRG(f))
+            using (var r = CVUtil.RedMinusBG(f))
+            using (Mat point = new Mat())
+            {
+                {
+                    Cv2.MinMaxLoc(g, out double minvalg, out double maxvalg, out _, out Point maxpg);
+                    int thresholdg = (int)((maxvalg + minvalg) / 2);
+                    Cv2.Threshold(g, g, thresholdg, 255, ThresholdTypes.Binary);
+                    Cv2.FindContours(g, out Point[][] c, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
+                    if (c.Length == 0) throw new Exception("No green spot found");
+                    Point target = new Point();
+                    double score = double.MinValue;
+                    foreach (var cc in c)
+                    {
+                        var rect = Cv2.BoundingRect(cc);
+                        Mat roi = f.SubMat(rect);
+                        Scalar avg = Cv2.Mean(roi);
+                        var brightness = (avg.Val0 + avg.Val1 + avg.Val2 + avg.Val3) / 4;
+                        if (brightness > score)
+                        {
+                            score = brightness;
+                            target = new Point((rect.Left + rect.Right) / 2, (rect.Bottom + rect.Top) / 2);
+                        }
+                    }
+                    Console.WriteLine("Red score:" + score);
+                    if (score < 50) throw new Exception("No green spot found");
+                    p1 = target;
+                }
+                {
+                    Cv2.MinMaxLoc(r, out double minvalr, out double maxvalr, out _, out Point maxpr);
+                    int thresholdr = (int)((maxvalr + minvalr) / 2);
+                    Cv2.Threshold(r, r, thresholdr, 255, ThresholdTypes.Binary);
+                    Cv2.FindContours(r, out Point[][] c, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
+                    if (c.Length == 0) throw new Exception("No red spot found");
+                    Point target = new Point();
+                    double score = double.MinValue;
+                    foreach (var cc in c)
+                    {
+                        var rect = Cv2.BoundingRect(cc);
+                        Mat roi = f.SubMat(rect);
+                        Scalar avg = Cv2.Mean(roi);
+                        var brightness = (avg.Val0 + avg.Val1 + avg.Val2 + avg.Val3) / 4;
+                        if (brightness > score)
+                        {
+                            score = brightness;
+                            target = new Point((rect.Left + rect.Right) / 2, (rect.Bottom + rect.Top) / 2);
+                        }
+                    }
+                    Console.WriteLine("Green score:" + score);
+                    if (score < 50) throw new Exception("No green spot found");
+                    p2 = target;
+                }
+                Cv2.DrawMarker(f, p1, Scalar.Green);
+                Cv2.DrawMarker(f, p2, Scalar.Red);
+                Cv2.ImShow("display", f);
+                Cv2.WaitKey(1);
+            }
+            return (p1, p2);
+        }
+
         static Point ShotForGreenSpot()
         {
             using (var f = cam.GetFrame(-5))
