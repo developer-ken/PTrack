@@ -20,9 +20,8 @@ namespace PTrack
                 Cv2.Threshold(gray, imgbin, 30, 255, ThresholdTypes.BinaryInv); // 二值化
                 Cv2.Erode(imgbin, imgbin, new Mat());
                 Cv2.Erode(imgbin, imgbin, new Mat());
-                Cv2.ImShow("bin", imgbin);
-                Cv2.ImShow("ctd_img", image);
-                Cv2.WaitKey(1);
+                Cv2.Dilate(imgbin, imgbin, new Mat());
+                Cv2.Dilate(imgbin, imgbin, new Mat());
                 Cv2.FindContours(imgbin, out Point[][] contours, out HierarchyIndex[] hierarchy, RetrievalModes.Tree, ContourApproximationModes.ApproxSimple);
                 Cv2.DrawContours(image, contours, -1, Scalar.Yellow, 1);
                 double maxScore = 0;

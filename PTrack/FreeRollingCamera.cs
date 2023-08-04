@@ -22,9 +22,13 @@ namespace PTrack
             count_fps = fpscounter;
             vcap = new VideoCapture(dev);
             vcap.AutoExposure = 0.25;
-            //vcap.FrameWidth = 640;
-            //vcap.FrameHeight = 480;
-            //vcap.Fps = 60;
+            latestframe = new Mat();
+        }
+        public FreeRollingCamera(string dev, bool fpscounter = false)
+        {
+            count_fps = fpscounter;
+            vcap = new VideoCapture(dev);
+            vcap.AutoExposure = 0.25;
             latestframe = new Mat();
         }
 
@@ -87,11 +91,16 @@ namespace PTrack
         public MatInPool GetFrame(double exposure = 0)
         {
             //vcap.Exposure = exposure;
-            
+
             onCap.WaitOne();
             onCap.Reset();
             //Cv2.Flip(latestframe, latestframe, FlipMode.XY);
-            return MatPool.Default.EnPool(latestframe);
+            int size = Math.Min(latestframe.Height, latestframe.Width);
+            Point center = new Point(latestframe.Width / 2, latestframe.Height / 2);
+            Rect roi = new Rect(center.X - size / 2, center.Y - size / 2, size, size);
+            var cropped = latestframe[roi];
+
+            return MatPool.Default.EnPool(cropped);
         }
     }
 }
