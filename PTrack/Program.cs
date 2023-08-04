@@ -40,6 +40,8 @@ namespace PTrack
         {
             IsBtnPressed = false;
             while (!IsBtnPressed) Thread.Sleep(1);
+            Thread.Sleep(500);
+            IsBtnPressed = false;
         }
 
         static void MoveAbs(int x, int y, uint interval)
@@ -129,11 +131,13 @@ namespace PTrack
                 {
                     Console.WriteLine(err.Message);
                 }
-                if(IsBtnPressed)
+                if (IsBtnPressed)
                 {
                     Thread.Sleep(1000);
                     IsBtnPressed = false;
-                    while(!IsBtnPressed) Thread.Sleep(1);
+                    while (!IsBtnPressed) Thread.Sleep(1);
+                    Thread.Sleep(1000);
+                    IsBtnPressed = false;
                 }
             }
         }
@@ -279,13 +283,23 @@ namespace PTrack
                 Console.WriteLine("检测到Linux，使用/dev/videoUSBx和/dev/ttyUSB0");
                 cam = new FreeRollingCamera("/dev/videoUSB0");
                 com = new SerialPort("/dev/ttyUSBSTM32", 115200);
-                com.DataReceived += Com_DataReceived; ;
                 //commotor = new SerialPort("/dev/ttyUSBSTEPPER", 9600);
             }
             cam.BeginRoll();
-            com.RtsEnable = false;
-            com.DtrEnable = false;
             com.Open();
+            Thread th = new Thread(new ThreadStart(() =>
+            {
+                while (true)
+                {
+                    var b = com.ReadByte();
+                    if (b == 0xfa)
+                    {
+                        Console.WriteLine("pressed");
+                        IsBtnPressed = true;
+                    }
+                }
+            }));
+            th.Start();
             //commotor.Open();
             if (OperatingSystem.IsWindows())
             {
@@ -312,10 +326,19 @@ namespace PTrack
                 }
             }
             GC.Collect();
-
+            Thread.Sleep(500);
+            IsBtnPressed = false;
             while (true)
             {
                 GreenGoesToRed();
+                if (IsBtnPressed)
+                {
+                    Thread.Sleep(1000);
+                    IsBtnPressed = false;
+                    while (!IsBtnPressed) Thread.Sleep(1);
+                    Thread.Sleep(1000);
+                    IsBtnPressed = false;
+                }
             }
         }
 
@@ -364,11 +387,6 @@ namespace PTrack
                     }
                 }
             }
-        }
-
-        private static void Com_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            IsBtnPressed = true;
         }
 
         static Mat rpic = new Mat();
