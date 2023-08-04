@@ -70,7 +70,7 @@ namespace PTrack
 
         static void MoveToTargetPoint(Point p)
         {
-            const double Kp = 0.5, Ki = 0, Kd = 0; // PID constants
+            const double Kp = 0.8, Ki = 0, Kd = 0; // PID constants
             double integral = 0, error_prev = 0;
             const int interval = 500; // MoveCommand interval
             var spot = ShotForRedSpot();
@@ -164,7 +164,7 @@ namespace PTrack
                 Console.WriteLine("检测到Linux，使用/dev/videoUSBx和/dev/ttyUSB0");
                 cam = new FreeRollingCamera("/dev/videoUSB0");
                 com = new SerialPort("/dev/ttyUSBSTM32", 115200);
-                com.DataReceived += Com_DataReceived; ;
+                com.DataReceived += Com_DataReceived;
                 //commotor = new SerialPort("/dev/ttyUSBSTEPPER", 9600);
             }
             cam.BeginRoll();
@@ -179,6 +179,14 @@ namespace PTrack
             }
             else
             {
+                if (File.Exists("splash.jpg"))
+                {
+                    Thread.Sleep(1000);
+                    using (var splash = Cv2.ImRead("splash.jpg"))
+                    {
+                        Visualize(splash);
+                    }
+                }
                 Console.WriteLine("检查点1");
                 WaitBtn();
                 Thread.Sleep(1000);
@@ -326,21 +334,25 @@ namespace PTrack
             GC.Collect();
             FollowCtr();
             GC.Collect();
-
-            IsBtnPressed = false;
-            while (!IsBtnPressed)
+            MoveToTargetPoint(center);
+            GC.Collect();
+            while (true)
             {
-                using (var f = cam.GetFrame(-5))
+                IsBtnPressed = false;
+                while (!IsBtnPressed)
                 {
-                    Cv2.PutText(f, "Task 4 ready", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
-                    Visualize(f);
+                    using (var f = cam.GetFrame(-5))
+                    {
+                        Cv2.PutText(f, "Task 4 ready", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
+                        Visualize(f);
+                    }
                 }
+                GC.Collect();
+                FollowCtr();
+                GC.Collect();
+                MoveToTargetPoint(center);
+                GC.Collect();
             }
-            GC.Collect();
-            FollowCtr();
-            GC.Collect();
-
-            fb.Clear();
         }
 
         static void LockUnlockMotor(byte id = 0x00, bool _lock = true)
@@ -409,6 +421,7 @@ namespace PTrack
                 fb ??= new FrameBuffer("/dev/fb0");
                 Cv2.Resize(pic, rpic, new Size(fb.Width, fb.Height));
                 Cv2.CvtColor(rpic, ppic, ColorConversionCodes.BGR2BGRA);
+                Cv2.Flip(ppic, ppic, FlipMode.XY);
                 fb.DrawBitmap(0, 0, ppic.Width, ppic.Height, ppic.DataStart);
             }
         }
