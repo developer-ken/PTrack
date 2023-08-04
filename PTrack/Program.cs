@@ -17,7 +17,7 @@ namespace PTrack
         //static SerialPort commotor;
         static FrameBuffer fb;
         static int currentX = 0, currentY = 0;
-        static bool IsBtnPressed = false;
+        public static bool IsBtnPressed = false;
 
         static void MoveCommand(int x, int y, uint interval)
         {
@@ -128,6 +128,11 @@ namespace PTrack
                 catch (Exception err)
                 {
                     Console.WriteLine(err.Message);
+                }
+                if(IsBtnPressed)
+                {
+                    IsBtnPressed = false;
+                    while(!IsBtnPressed) Thread.Sleep(1);
                 }
             }
         }
@@ -295,6 +300,18 @@ namespace PTrack
 
             Point center = new Point(), lu = new Point(),
                 ru = new Point(), rb = new Point(), lb = new Point();
+
+            IsBtnPressed = false;
+            while (!IsBtnPressed)
+            {
+                using (var f = cam.GetFrame(-5))
+                {
+                    Cv2.PutText(f, "Tracker ready", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
+                    Visualize(f);
+                }
+            }
+            GC.Collect();
+
             while (true)
             {
                 GreenGoesToRed();
