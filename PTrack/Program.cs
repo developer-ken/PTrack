@@ -330,14 +330,20 @@ namespace PTrack
             IsBtnPressed = false;
             while (true)
             {
-                GreenGoesToRed();
-                if (IsBtnPressed)
+                try
                 {
-                    Thread.Sleep(1000);
-                    IsBtnPressed = false;
-                    while (!IsBtnPressed) Thread.Sleep(1);
-                    Thread.Sleep(1000);
-                    IsBtnPressed = false;
+                    GreenGoesToRed();
+                    if (IsBtnPressed)
+                    {
+                        Thread.Sleep(1000);
+                        IsBtnPressed = false;
+                        while (!IsBtnPressed) Thread.Sleep(1);
+                        Thread.Sleep(1000);
+                        IsBtnPressed = false;
+                    }
+                }catch(Exception err)
+                {
+                    Console.WriteLine(err.Message);
                 }
             }
         }
