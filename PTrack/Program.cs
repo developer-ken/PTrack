@@ -21,6 +21,10 @@ namespace PTrack
 
         static void MoveCommand(int x, int y, uint interval)
         {
+            if (x > 500) x = 500;
+            if (x < -500) x = -500;
+            if (y > 500) y = 500;
+            if (y < -500) y = -500;
             byte[] buffer = new byte[12];
             Buffer.BlockCopy(BitConverter.GetBytes(-x), 0, buffer, 0, 4);
             Buffer.BlockCopy(BitConverter.GetBytes(-y), 0, buffer, 4, 4);
@@ -29,6 +33,7 @@ namespace PTrack
             Thread.Sleep(10);
             currentX += x;
             currentY += y;
+            Console.WriteLine($"MoveCommand: {x}, {y}, {interval}");
         }
 
         static void WaitBtn()
@@ -94,13 +99,13 @@ namespace PTrack
 
         static void GreenGoesToRed()
         {
-            const double Kp = 0.5, Ki = 0, Kd = 0; // PID constants
+            const double Kp = 2, Ki = 0.05, Kd = 2; // PID constants
             double integral = 0, error_prev = 0;
             const int interval = 500; // MoveCommand interval
             var p2pp = Shot4DuoColorPoints();
             var spot = p2pp.Item1;
             var p = p2pp.Item2;
-            while (Math.Abs(spot.X - p.X) > 25 || Math.Abs(spot.Y - p.Y) > 25) // threshold for error
+            while (Math.Abs(spot.X - p.X) > 10 || Math.Abs(spot.Y - p.Y) > 10) // threshold for error
             {
                 try
                 {
@@ -109,7 +114,7 @@ namespace PTrack
                     if (integral * Ki > 100)
                     {
                         integral = 100 / Ki;
-        }
+                    }
                     double derivative = error - error_prev;
                     double output = Kp * error + Ki * integral + Kd * derivative;
                     int x_move = (int)Math.Round(output * Math.Cos(Math.Atan2(p.Y - spot.Y, p.X - spot.X)));
@@ -260,7 +265,7 @@ namespace PTrack
             if (OperatingSystem.IsWindows())
             {
                 cam = new FreeRollingCamera(0);
-                com = new SerialPort("COM10", 115200);
+                com = new SerialPort("COM8", 115200);
                 //commotor = new SerialPort("COMx", 9600);
             }
             else
@@ -290,7 +295,10 @@ namespace PTrack
 
             Point center = new Point(), lu = new Point(),
                 ru = new Point(), rb = new Point(), lb = new Point();
-
+            while (true)
+            {
+                GreenGoesToRed();
+            }
             if (OperatingSystem.IsWindows())
             {
                 Console.WriteLine("是Windows，预先预览");
