@@ -149,7 +149,7 @@ namespace PTrack
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        static (Point, Point) Shot4DuoColorPoints()
+        static (Point, Point) Shot4DuoColorPoints((Point, Point) lastp)
         {
             Point p1 = new Point(), p2 = new Point();
             using (var f = cam.GetFrame(-5))
@@ -168,6 +168,7 @@ namespace PTrack
                     foreach (var cc in c)
                     {
                         var rect = Cv2.BoundingRect(cc);
+                        if()
                         Mat roi = f.SubMat(rect);
                         Scalar avg = Cv2.Mean(roi);
                         var brightness = (avg.Val0 + avg.Val1 + avg.Val2 + avg.Val3) / 4;
@@ -210,6 +211,11 @@ namespace PTrack
                 Visualize(f);
             }
             return (p1, p2);
+        }
+
+        static Point Center(Rect rect)
+        {
+            return new Point((rect.Left + rect.Right) / 2, (rect.Bottom + rect.Top) / 2);
         }
 
         static Point ShotForGreenSpot()
