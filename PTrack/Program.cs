@@ -449,9 +449,18 @@ namespace PTrack
             {
                 fb ??= new FrameBuffer("/dev/fb0");
                 Cv2.Resize(pic, rpic, new Size(fb.Width, fb.Height));
-                Cv2.CvtColor(rpic, ppic, ColorConversionCodes.BGR2BGRA);
-                Cv2.Flip(ppic, ppic, FlipMode.XY);
-                fb.DrawBitmap(0, 0, ppic.Width, ppic.Height, ppic.DataStart);
+                //Cv2.Flip(rpic, rpic, FlipMode.XY);
+                switch (fb.BitsPerPixel)
+                {
+                    case 16:
+                        Cv2.CvtColor(rpic, ppic, ColorConversionCodes.BGR2BGR565);
+                        fb.DrawBitmap(ppic.Data);
+                        break;
+                    case 32:
+                        Cv2.CvtColor(rpic, ppic, ColorConversionCodes.BGR2BGRA);
+                        fb.DrawBitmap(ppic.Data);
+                        break;
+                }
             }
         }
     }
