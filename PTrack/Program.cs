@@ -274,9 +274,9 @@ namespace PTrack
         static void BeepStart()
         {
             byte[] buffer = new byte[12];
-            Buffer.BlockCopy(BitConverter.GetBytes(200000), 0, buffer, 0, 4);
-            Buffer.BlockCopy(BitConverter.GetBytes(200000), 0, buffer, 4, 4);
-            Buffer.BlockCopy(BitConverter.GetBytes(200000), 0, buffer, 8, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(0), 0, buffer, 0, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(0), 0, buffer, 4, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(0), 0, buffer, 8, 4);
             com.Write(buffer, 0, 12);
             Thread.Sleep(10);
         }
@@ -284,9 +284,9 @@ namespace PTrack
         static void BeepStop()
         {
             byte[] buffer = new byte[12];
-            Buffer.BlockCopy(BitConverter.GetBytes(300000), 0, buffer, 0, 4);
-            Buffer.BlockCopy(BitConverter.GetBytes(300000), 0, buffer, 4, 4);
-            Buffer.BlockCopy(BitConverter.GetBytes(300000), 0, buffer, 8, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(0), 0, buffer, 0, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(0), 0, buffer, 4, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(1), 0, buffer, 8, 4);
             com.Write(buffer, 0, 12);
             Thread.Sleep(10);
         }
