@@ -18,6 +18,7 @@ namespace PTrack
         static FrameBuffer fb;
         static int currentX = 0, currentY = 0;
         static bool IsBtnPressed = false;
+        static bool IsBtn2Pressed = false;
 
         static void MoveCommand(int x, int y, uint interval)
         {
@@ -188,6 +189,11 @@ namespace PTrack
                     {
                         Console.WriteLine("pressed");
                         IsBtnPressed = true;
+                    }
+                    if (b == 0xfb)
+                    {
+                        Console.WriteLine("btn2");
+                        IsBtn2Pressed = true;
                     }
                 }
             }));
