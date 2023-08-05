@@ -440,19 +440,8 @@ namespace PTrack
         static Mat ppic = new Mat();
         static void Visualize(Mat pic)
         {
-            if (OperatingSystem.IsWindows())
-            {
-                Cv2.ImShow("Visualize", pic);
-                Cv2.WaitKey(1);
-            }
-            else
-            {
-                fb ??= new FrameBuffer("/dev/fb0");
-                Cv2.Resize(pic, rpic, new Size(fb.Width, fb.Height));
-                Cv2.CvtColor(rpic, ppic, ColorConversionCodes.BGR2BGRA);
-                Cv2.Flip(ppic, ppic, FlipMode.XY);
-                fb.DrawBitmap(0, 0, ppic.Width, ppic.Height, ppic.DataStart);
-            }
+            Cv2.ImShow("Visualize", pic);
+            Cv2.WaitKey(1);
         }
     }
 }
