@@ -102,7 +102,7 @@ namespace PTrack
 
         static void GreenGoesToRed()
         {
-            const double Kp = 2, Ki = 0.05, Kd = 2; // PID constants
+            const double Kp = 2, Ki = 0.05, Kd = 0; // PID constants
             double integral = 0, error_prev = 0;
             const int interval = 500; // MoveCommand interval
             var p2pp = Shot4DuoColorPoints();
