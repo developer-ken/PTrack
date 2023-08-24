@@ -83,9 +83,16 @@ namespace PTrack
             latestframe.Dispose();
         }
 
-        public void Exposure(double exposure = 0)
+        public void Exposure(bool autoexposure = true, double exposure = 0)
         {
-            //vcap.Exposure = exposure;
+            if (autoexposure)
+            {
+                vcap.AutoExposure = 0.25;
+            }
+            else
+            {
+                vcap.Exposure = exposure;
+            }
         }
 
         public MatInPool GetFrame(double exposure = 0)

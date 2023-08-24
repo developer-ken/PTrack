@@ -19,6 +19,7 @@ namespace PTrack
         static FrameBuffer fb;
         static int currentX = 0, currentY = 0;
         public static bool IsBtnPressed = false;
+        public static bool IsBtn2Pressed = false;
 
         static void MoveCommand(int x, int y, uint interval)
         {
@@ -100,15 +101,15 @@ namespace PTrack
             }
         }
 
-        static void GreenGoesToRed()
+        static bool GreenGoesToRed()
         {
-            const double Kp = 2, Ki = 0.05, Kd = 0; // PID constants
+            const double Kp = 3, Ki = 0.05, Kd = 1; // PID constants
             double integral = 0, error_prev = 0;
             const int interval = 500; // MoveCommand interval
             var p2pp = Shot4DuoColorPoints();
             var spot = p2pp.Item1;
             var p = p2pp.Item2;
-            while (Math.Abs(spot.X - p.X) > 10 || Math.Abs(spot.Y - p.Y) > 10) // threshold for error
+            while (Math.Abs(spot.X - p.X) > 15 || Math.Abs(spot.Y - p.Y) > 15) // threshold for error
             {
                 try
                 {
@@ -137,11 +138,23 @@ namespace PTrack
                     BeepStop();
                     Thread.Sleep(1000);
                     IsBtnPressed = false;
-                    while (!IsBtnPressed) Thread.Sleep(1);
+                    IsBtn2Pressed = false;
+                    while (true)
+                    {
+                        if (IsBtnPressed)
+                        {
+                            break;
+                        }
+                        if (IsBtn2Pressed)
+                        {
+                            return true;
+                        }
+                    }
                     Thread.Sleep(1000);
                     IsBtnPressed = false;
                 }
             }
+            return false;
         }
 
         /// <summary>
@@ -318,6 +331,11 @@ namespace PTrack
                         Console.WriteLine("pressed");
                         IsBtnPressed = true;
                     }
+                    if (b == 0xfb)
+                    {
+                        Console.WriteLine("btn2 pressed");
+                        IsBtn2Pressed = true;
+                    }
                 }
             }));
             th.Start();
@@ -353,7 +371,21 @@ namespace PTrack
             {
                 try
                 {
-                    GreenGoesToRed();
+                    if (GreenGoesToRed())
+                    {// goes into preview
+                        IsBtnPressed = false;
+                        //cam.Exposure();
+                        while (!IsBtnPressed)
+                        {
+                            using (var f = cam.GetFrame())
+                            {
+                                Cv2.PutText(f, "Tracker ready", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
+                                Visualize(f);
+                            }
+                        }
+                        //cam.Exposure(false, -10);
+                        continue;
+                    }
                     byte[] buffer = new byte[12];
                     BeepStart();
                     if (IsBtnPressed)
