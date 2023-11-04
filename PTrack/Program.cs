@@ -38,6 +38,14 @@ namespace PTrack
             while (!IsBtnPressed) Thread.Sleep(1);
         }
 
+        static int waitAnyBtn()
+        {
+            IsBtnPressed = false;
+            IsBtn2Pressed = false;
+            while ((!IsBtnPressed) && (!IsBtn2Pressed)) Thread.Sleep(1);
+            return IsBtnPressed && IsBtn2Pressed ? 3 : IsBtnPressed ? 1 : 2;
+        }
+
         static void MoveAbs(int x, int y, uint interval)
         {
             MoveCommand(x - currentX, y - currentY, interval);
@@ -327,6 +335,7 @@ namespace PTrack
                     Visualize(f);
                 }
             }
+            IsBtnPressed = false;
             GC.Collect();
 
             MoveToTargetPoint(center);
@@ -342,6 +351,7 @@ namespace PTrack
                     Visualize(f);
                 }
             }
+            IsBtnPressed = false;
             GC.Collect();
 
             MoveToTargetPoint(lu);
@@ -360,6 +370,7 @@ namespace PTrack
                     Visualize(f);
                 }
             }
+            IsBtnPressed = false;
             GC.Collect();
             FollowCtr();
             GC.Collect();
@@ -376,6 +387,7 @@ namespace PTrack
                         Visualize(f);
                     }
                 }
+                IsBtnPressed = false;
                 GC.Collect();
                 FollowCtr();
                 GC.Collect();
@@ -402,6 +414,11 @@ namespace PTrack
                         Console.WriteLine("计算...");
                         var rectp = RectTrack.DetectSkewRect(f);
                         Console.WriteLine("轮廓检出");
+                        if (waitAnyBtn() == 2)
+                        {
+                            Console.WriteLine("重新抓帧");
+                            goto Refind;
+                        }
                         foreach (var p in rectp.ContourCW)
                         {
                             using (Mat fdraw = f.Clone())
