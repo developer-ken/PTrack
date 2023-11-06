@@ -254,6 +254,7 @@ namespace PTrack
                 {
                     using (var f = cam.GetFrame(-5))
                     {
+                        Console.WriteLine("Mark Center");
                         Cv2.PutText(f, "Mark Center", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
                         Visualize(f);
                     }
@@ -268,6 +269,7 @@ namespace PTrack
                 {
                     using (var f = cam.GetFrame(-5))
                     {
+                        Console.WriteLine("Mark Left Up");
                         Cv2.PutText(f, "Mark Left Up", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
                         Visualize(f);
                     }
@@ -282,6 +284,7 @@ namespace PTrack
                 {
                     using (var f = cam.GetFrame(-5))
                     {
+                        Console.WriteLine("Mark Right Up");
                         Cv2.PutText(f, "Mark Right Up", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
                         Visualize(f);
                     }
@@ -296,6 +299,7 @@ namespace PTrack
                 {
                     using (var f = cam.GetFrame(-5))
                     {
+                        Console.WriteLine("Mark Right Bottom");
                         Cv2.PutText(f, "Mark Right Bottom", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
                         Visualize(f);
                     }
@@ -310,6 +314,7 @@ namespace PTrack
                 {
                     using (var f = cam.GetFrame(-5))
                     {
+                        Console.WriteLine("Mark Left Bottom");
                         Cv2.PutText(f, "Mark Left Bottom", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
                         Visualize(f);
                     }
@@ -331,6 +336,7 @@ namespace PTrack
             {
                 using (var f = cam.GetFrame(-5))
                 {
+                    Console.WriteLine("Task 1 ready");
                     Cv2.PutText(f, "Task 1 ready", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
                     Visualize(f);
                 }
@@ -347,6 +353,7 @@ namespace PTrack
             {
                 using (var f = cam.GetFrame(-5))
                 {
+                    Console.WriteLine("Task 2 ready");
                     Cv2.PutText(f, "Task 2 ready", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
                     Visualize(f);
                 }
@@ -366,6 +373,7 @@ namespace PTrack
             {
                 using (var f = cam.GetFrame(-5))
                 {
+                    Console.WriteLine("Task 3 ready");
                     Cv2.PutText(f, "Task 3 ready", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
                     Visualize(f);
                 }
@@ -383,6 +391,7 @@ namespace PTrack
                 {
                     using (var f = cam.GetFrame(-5))
                     {
+                        Console.WriteLine("Task 4 ready");
                         Cv2.PutText(f, "Task 4 ready", new Point(10, 30), HersheyFonts.HersheyPlain, 2, Scalar.Red);
                         Visualize(f);
                     }
